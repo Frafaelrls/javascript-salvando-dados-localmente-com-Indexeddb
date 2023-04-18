@@ -1,28 +1,42 @@
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aprendendo IndexedDB</title>
 </head>
+
 <body>
+    <script src="js/app/models/Negociacao.js"></script>
     <script>
 
-        var openRequest = window.indexedDB.open('aluraframe', 1);
+        var connection;
+
+        // A função open() recebe dois parâmetros, sendo: nome do banco e versão do banco
+        var openRequest = window.indexedDB.open('aluraframe', 2);
 
         openRequest.onupgradeneeded = e => {
             console.log('Criado ou altera um banco já existente');
+
+            var minhaConnection = e.target.result;
+            minhaConnection.createObjectStore('negociacoes');
         }
 
         openRequest.onsuccess = e => {
             console.log('Conexão obtida com sucesso');
+
+            connection = e.target.result;
         }
 
         openRequest.onerror = e => {
+
             console.log(e.target.error);
         }
 
+
     </script>
 </body>
+
 </html>
