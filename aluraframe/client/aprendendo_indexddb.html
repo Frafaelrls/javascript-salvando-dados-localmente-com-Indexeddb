@@ -15,7 +15,7 @@
         var connection;
 
         // A função open() recebe dois parâmetros, sendo: nome do banco e versão do banco
-        var openRequest = window.indexedDB.open('aluraframe', 3);
+        var openRequest = window.indexedDB.open('aluraframe', 1);
 
         openRequest.onupgradeneeded = e => {
             console.log('Criado ou altera um banco já existente');
@@ -45,12 +45,18 @@
             // Para a função transaction devemos passar o nome da Store e o tipo, ex: readwrite (leitura/escrita)
             let transaction = connection.transaction(['negociacoes'], 'readwrite');
 
-            // Após definir o tipo de transação, devemos usá-la para coletar a store  
+            // Após definir o tipo de transação, devemos usá-la para coletar a store (é um objeto)  
             let store = transaction.objectStore('negociacoes');
 
             let negociacao = new Negociacao(new Date(), 1, 200);
 
-            let request = store.add(negociacao);
+            /* 
+                Devido ao uso dos atributos privados, será necessário recriar o objeto
+                Chamando os métodos get e atribuindo os valores a uma nova chave
+                O indexddb adiciona apenas os valores no banco em formado JSON
+                Mas, não realiza a chamada dos métodos get, fazendo com que o objeto seja salvo vazio
+            */ 
+            let request = store.add({data:negociacao.data, quantidade:negociacao.quantidade, valor:negociacao.valor});
 
             request.onsuccess = e => {
                 console.log('Negociação incluida com sucesso');
@@ -59,6 +65,43 @@
             request.onerror = e => {
                 console.log('Não foi possível incluir a negociação');
             }
+
+        }
+
+        function listaTodos() {
+            
+            let transaction = connection.transaction(['negociacoes'], 'readwrite');
+
+            let store = transaction.objectStore('negociacoes');
+
+            // cursor que aponta para os objetos salvos no banco
+            let cursor = store.openCursor();
+
+            let negociacoes = [];
+
+            cursor.onsuccess = e => {
+
+                // ponteiro para o objeto atual
+                let atual = e.target.result;
+                
+                if (atual) {
+
+                    let dado = atual.value;
+                    // Cria um novo objeto com os dados salvos no banco 
+                    negociacoes.push(new Negociacao(dado.data, dado.quantidade, dado.valor));
+
+                    atual.continue();
+
+                } else {
+
+                    console.log(negociacoes);
+                }
+            }
+
+            cursor.onerror = e => {
+
+                console.log(e.target.error.name);
+            };
 
         }
 
