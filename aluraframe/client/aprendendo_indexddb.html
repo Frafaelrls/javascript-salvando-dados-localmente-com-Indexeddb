@@ -10,6 +10,7 @@
 
 <body>
     <script src="js/app/models/Negociacao.js"></script>
+    <script src="js/app/services/ConnectionFactory.js"></script>
     <script>
 
         var connection;
@@ -56,6 +57,7 @@
                 O indexddb adiciona apenas os valores no banco em formado JSON
                 Mas, não realiza a chamada dos métodos get, fazendo com que o objeto seja salvo vazio
             */ 
+           
             let request = store.add({data:negociacao.data, quantidade:negociacao.quantidade, valor:negociacao.valor});
 
             request.onsuccess = e => {
@@ -104,6 +106,19 @@
             };
 
         }
+
+        ConnectionFactory
+        .getConnection()
+        .then(connection => {
+        });
+
+        // faz outras coisas e pede novamente a conexão
+
+        ConnectionFactory
+            .getConnection()
+            .then(connection => {
+            });
+
 
     </script>
 </body>
