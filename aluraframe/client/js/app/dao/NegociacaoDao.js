@@ -14,12 +14,12 @@ class NegociacaoDao {
 
         return new Promise((resolve, reject) => {
 
-            let request =  this.#connection.transaction([this.#store], 'readwrite')
-                .objectStore( this.#store)
-                .add({data:negociacao.data, quantidade:negociacao.quantidade, valor:negociacao.valor});
+            let request = this.#connection.transaction([this.#store], 'readwrite')
+                .objectStore(this.#store)
+                .add({ data: negociacao.data, quantidade: negociacao.quantidade, valor: negociacao.valor });
 
             request.onsuccess = e => {
-                
+
                 resolve();
             };
 
@@ -32,5 +32,46 @@ class NegociacaoDao {
         });
 
     }
+
+    listaTodos() {
+
+        return new Promise((resolve, reject) => {
+
+            let cursor = this.#connection
+                .transaction([this.#store], 'readwrite')
+                .objectStore(this.#store)
+                .openCursor();
+
+            let negociacoes = [];
+
+            cursor.onsuccess = e => {
+
+                // ponteiro para o objeto atual
+                let atual = e.target.result;
+
+                if (atual) {
+
+                    let dado = atual.value;
+                    // Cria um novo objeto com os dados salvos no banco 
+                    negociacoes.push(new Negociacao(dado.data, dado.quantidade, dado.valor));
+
+                    atual.continue();
+
+                } else {
+
+                    resolve(negociacoes);
+                }
+            }
+
+            cursor.onerror = e => {
+
+                console.log(e.target.error);
+                reject('Não foi possível listar as negociações')
+            };
+
+
+        })
+
+    };
 
 }
