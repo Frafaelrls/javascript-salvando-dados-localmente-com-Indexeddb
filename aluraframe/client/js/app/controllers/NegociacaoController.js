@@ -37,9 +37,25 @@ class NegociacaoController {
     adiciona(event) {
         event.preventDefault();
 
-        this.#listaNegociacoes.adiciona(this.#criaNegociacao());
-        this.#mensagem.texto = 'Negociação adicionada com sucesso!';
-        this.#limpaFormulario();
+        ConnectionFactory
+            .getConnection()
+            .then(connection => {
+
+                let negociacao = this.#criaNegociacao();
+
+                new NegociacaoDao(connection)
+                    .adiciona(negociacao)
+                    .then(() => {
+
+                        // Adicionando na tabela para exibir 
+                        this.#listaNegociacoes.adiciona(negociacao);
+                        this.#mensagem.texto = 'Negociação adicionada com sucesso!';
+                        this.#limpaFormulario();
+                    })
+
+            })
+            .catch(erro => this.#mensagem = erro);
+
 
     };
 
@@ -57,10 +73,10 @@ class NegociacaoController {
             service.obeterNegociacoesDaSemanaRetrasada()
         ]).then(negociacoes => {
             negociacoes
-            .reduce((arrayAchatado, array) => arrayAchatado.concat(array),[] )
-            .forEach(negociacao => this.#listaNegociacoes.adiciona(negociacao));
+                .reduce((arrayAchatado, array) => arrayAchatado.concat(array), [])
+                .forEach(negociacao => this.#listaNegociacoes.adiciona(negociacao));
             this.#mensagem.texto = 'Negociações importadas com sucesso';
-        }).catch(erro => this.#mensagem.texto = erro);        
+        }).catch(erro => this.#mensagem.texto = erro);
 
         /*
             Abaixo temos a aplicação do padrão de projeto promise, mas, o código abaixo
@@ -152,15 +168,15 @@ class NegociacaoController {
 
         return new Negociacao(
             DateHelper.textoParaData(this.#inputData.value),
-            this.#inputQuantidade.value,
-            this.#inputValor.value
+            parseInt(this.#inputQuantidade.value),
+            parseFloat(this.#inputValor.value)
         );
     }
 
     ordena(coluna) {
-        if(this.#ordemAtual == coluna) {
+        if (this.#ordemAtual == coluna) {
             this.#listaNegociacoes.inverteOrdem();
-        }else{
+        } else {
             this.#listaNegociacoes.ordena((a, b) => a[coluna] - b[coluna]);
         }
         this.#ordemAtual = coluna;
