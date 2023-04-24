@@ -32,6 +32,14 @@ class NegociacaoController {
             new MensagemView($('#mensagemView')),
             'texto');
 
+        ConnectionFactory
+            .getConnection()
+            .then(connection => new NegociacaoDao(connection))
+            .then(dao => dao.listaTodos())
+            .then(negociacoes =>
+                negociacoes.forEach(negociacao =>
+                    this.#listaNegociacoes.adiciona(negociacao)));
+
     }
 
     adiciona(event) {
