@@ -40,8 +40,8 @@ class NegociacaoController {
                 negociacoes.forEach(negociacao =>
                     this.#listaNegociacoes.adiciona(negociacao)))
             .catch(erro => {
-               console.log(erro);
-               this.#mensagem.texto = erro; 
+                console.log(erro);
+                this.#mensagem.texto = erro;
             });
 
     }
@@ -76,17 +76,23 @@ class NegociacaoController {
         let service = new NegociacaoService();
 
         service
-        .obterNegociacoes()
-        .then(negociacoes => 
-            negociacoes.filter(negociacao =>  
-                      this.#listaNegociacoes.negociacoes.indexOf(negociacao) == -1)
-       )
-        .then(negociacoes => negociacoes.forEach(negociacao => {
-            this.#listaNegociacoes.adiciona(negociacao);
-            this.#mensagem.texto = 'Negociações do período importadas'   
-        }))
-        .catch(erro => this.#mensagem.texto = erro);           
-                    
+            .obterNegociacoes()
+            .then(negociacoes =>
+                negociacoes.filter(negociacao =>
+                    /*
+                        O método .some() percorre uma lista e retorna true se encontrar um objeto
+                        corresponente ao objeto procurado
+                    */
+                    !this.#listaNegociacoes.negociacoes.some(negociacaoExistente =>
+                        JSON.stringify(negociacao) == JSON.stringify(negociacaoExistente))
+                )
+            )
+            .then(negociacoes => negociacoes.forEach(negociacao => {
+                this.#listaNegociacoes.adiciona(negociacao);
+                this.#mensagem.texto = 'Negociações do período importadas'
+            }))
+            .catch(erro => this.#mensagem.texto = erro);
+
 
         /*
             Abaixo temos a aplicação do padrão de projeto promise, mas, o código abaixo
@@ -173,7 +179,7 @@ class NegociacaoController {
             .getConnection()
             .then(connection => new NegociacaoDao(connection))
             .then(dao => dao.apagaTodos())
-            .then(mensagem =>{
+            .then(mensagem => {
                 this.#mensagem.texto = mensagem;
                 this.#listaNegociacoes.esvazia();
             });
