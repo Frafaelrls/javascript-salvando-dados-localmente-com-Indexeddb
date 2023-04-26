@@ -75,20 +75,18 @@ class NegociacaoController {
 
         let service = new NegociacaoService();
 
-        // Padrão de projeto promise
-
-        // Promise.all() executa as promises sequencialmente.
-
-        Promise.all([
-            service.obeterNegociacoesDaSemana(),
-            service.obeterNegociacoesDaSemanaAnterior(),
-            service.obeterNegociacoesDaSemanaRetrasada()
-        ]).then(negociacoes => {
-            negociacoes
-                .reduce((arrayAchatado, array) => arrayAchatado.concat(array), [])
-                .forEach(negociacao => this.#listaNegociacoes.adiciona(negociacao));
-            this.#mensagem.texto = 'Negociações importadas com sucesso';
-        }).catch(erro => this.#mensagem.texto = erro);
+        service
+        .obterNegociacoes()
+        .then(negociacoes => 
+            negociacoes.filter(negociacao =>  
+                      this.#listaNegociacoes.negociacoes.indexOf(negociacao) == -1)
+       )
+        .then(negociacoes => negociacoes.forEach(negociacao => {
+            this.#listaNegociacoes.adiciona(negociacao);
+            this.#mensagem.texto = 'Negociações do período importadas'   
+        }))
+        .catch(erro => this.#mensagem.texto = erro);           
+                    
 
         /*
             Abaixo temos a aplicação do padrão de projeto promise, mas, o código abaixo
