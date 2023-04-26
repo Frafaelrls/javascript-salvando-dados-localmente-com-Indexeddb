@@ -32,18 +32,28 @@ class NegociacaoController {
             new MensagemView($('#mensagemView')),
             'texto');
 
-        ConnectionFactory
-            .getConnection()
-            .then(connection => new NegociacaoDao(connection))
-            .then(dao => dao.listaTodos())
-            .then(negociacoes =>
-                negociacoes.forEach(negociacao =>
-                    this.#listaNegociacoes.adiciona(negociacao)))
-            .catch(erro => {
-                console.log(erro);
-                this.#mensagem.texto = erro;
-            });
+        this.#init();
 
+    }
+
+    #init() {
+
+        ConnectionFactory
+        .getConnection()
+        .then(connection => new NegociacaoDao(connection))
+        .then(dao => dao.listaTodos())
+        .then(negociacoes =>
+            negociacoes.forEach(negociacao =>
+                this.#listaNegociacoes.adiciona(negociacao)))
+        .catch(erro => {
+            console.log(erro);
+            this.#mensagem.texto = erro;
+        });
+    
+    setInterval(()=>{
+        this.importaNegociacoes()
+    }, 3000);
+    
     }
 
     adiciona(event) {
