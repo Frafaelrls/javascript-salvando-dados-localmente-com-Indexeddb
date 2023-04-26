@@ -7,7 +7,7 @@ class NegociacaoService {
         this.#http = new HttpService();
     }
 
-    obeterNegociacoesDaSemana() {
+    obterNegociacoesDaSemana() {
 
         return new Promise((resolve, reject) => {
 
@@ -23,7 +23,7 @@ class NegociacaoService {
         });
     }
 
-    obeterNegociacoesDaSemanaAnterior() {
+    obterNegociacoesDaSemanaAnterior() {
 
         return new Promise((resolve, reject) => {
 
@@ -39,7 +39,7 @@ class NegociacaoService {
         });
     }
 
-    obeterNegociacoesDaSemanaRetrasada() {
+    obterNegociacoesDaSemanaRetrasada() {
 
         return new Promise((resolve, reject) => {
 
@@ -54,4 +54,22 @@ class NegociacaoService {
                 })
         });
     }
+
+    obterNegociacoes() {
+        
+        return Promise.all([
+            this.obterNegociacoesDaSemana(),
+            this.obterNegociacoesDaSemanaAnterior(),
+            this.obterNegociacoesDaSemanaRetrasada()
+        ]).then(periodos => {
+
+            let negociacoes = periodos
+                .reduce((dados, periodo) => dados.concat(periodo), [])
+                .map(dado => new Negociacao(new Date(dado.data), dado.quantidade, dado.valor ));
+
+            return negociacoes;
+        }).catch(erro => {
+            throw new Error(erro);
+        });
+	} 
 }
