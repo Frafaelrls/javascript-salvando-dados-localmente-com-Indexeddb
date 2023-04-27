@@ -7,6 +7,7 @@ class NegociacaoController {
     #listaNegociacoes;
     #mensagem;
     #ordemAtual;
+    #service;
 
     constructor() {
 
@@ -31,28 +32,26 @@ class NegociacaoController {
             new Mensagem(),
             new MensagemView($('#mensagemView')),
             'texto');
+        
+        this.#service = new NegociacaoService()
 
         this.#init();
-
     }
 
     #init() {
 
-        ConnectionFactory
-        .getConnection()
-        .then(connection => new NegociacaoDao(connection))
-        .then(dao => dao.listaTodos())
-        .then(negociacoes =>
-            negociacoes.forEach(negociacao =>
-                this.#listaNegociacoes.adiciona(negociacao)))
-        .catch(erro => {
-            console.log(erro);
-            this.#mensagem.texto = erro;
-        });
-    
-    setInterval(()=>{
-        this.importaNegociacoes()
-    }, 3000);
+        this.#service
+            .lista()
+            .then(negociacoes =>
+                negociacoes.forEach(negociacao =>
+                    this.#listaNegociacoes.adiciona(negociacao)))
+            .catch(erro => {
+                this.#mensagem.texto = erro;
+            });
+
+        setInterval(() => {
+            this.importaNegociacoes()
+        }, 3000);
 
     }
 
@@ -61,7 +60,7 @@ class NegociacaoController {
 
         let negociacao = this.#criaNegociacao();
 
-        new NegociacaoService()
+        this.#service
             .cadastra(negociacao)
             .then(mensagem => {
                 this.#listaNegociacoes.adiciona(negociacao);
@@ -69,14 +68,12 @@ class NegociacaoController {
                 this.#limpaFormulario()
             })
             .catch(erro => this.#mensagem.texto = erro);
-        
+
     };
 
     importaNegociacoes() {
 
-        let service = new NegociacaoService();
-
-        service
+        this.#service
             .obterNegociacoes()
             .then(negociacoes =>
                 negociacoes.filter(negociacao =>
@@ -100,7 +97,7 @@ class NegociacaoController {
             é um "Pyramid of Doom". Este tipo de código pode apresentar retornos fora de
             ordem devido a promise ser assíncrona, onde uma solicitação é executada independente
             da solicitação anterior.
-
+    
         let promise = service.obeterNegociacoesDaSemana();
         promise
             .then(negociacoes => {
@@ -108,62 +105,62 @@ class NegociacaoController {
                 this.#mensagem.texto = 'Negociações da semana obtida com sucesso!';
             })
             .catch(erro => this.#mensagem.texto = erro)
-
+    
         service.obeterNegociacoesDaSemanaAnterior()
             .then(negociacoes => {
                 negociacoes.forEach(negociacao => this.#listaNegociacoes.adiciona(negociacao))
                 this.#mensagem.texto = 'Negociações da semana anterior obtida com sucesso!';
             })
             .catch(erro => this.#mensagem.texto = erro)
-
+    
         service.obeterNegociacoesDaSemanaRetrasada()
             .then(negociacoes => {
                 negociacoes.forEach(negociacao => this.#listaNegociacoes.adiciona(negociacao))
                 this.#mensagem.texto = 'Negociações da semana retrasada obtida com sucesso!';
             })
             .catch(erro => this.#mensagem.texto = erro)
-
-
+    
+    
         */
         /* 
         
             Abaixo temos um exemplo de código chamado "Pyramid of Doom" ("Pirâmide do destino")
             Isso ocorre quando temos um aninhamento de funções, ou seja, uma função dentro de outras
             funções.
-
+    
             A pirâmide é um forte indício de que temos problemas de legibilidade do código,
             e é o sintoma de um problema maior, o "Callback Hell". 
             Ocorre quando temos requisições assíncronas executadas em determinada ordem, 
             que chama vários callbacks seguidos.
         
         
-
+    
         service.obeterNegociacoesDaSemana((erro, negociacoes) => {
-
+    
             // Pragamação chamada de Error-First-Callback
             if (erro) {
                 this.#mensagem.texto = erro;
                 return
             }
-
+    
             negociacoes.forEach(negociacao => this.#listaNegociacoes.adiciona(negociacao));
-
+    
             service.obeterNegociacoesDaSemanaAnterior((erro, negociacoes) => {
-
+    
                 if (erro) {
                     this.#mensagem.texto = erro;
                     return
                 }
-
+    
                 negociacoes.forEach(negociacao => this.#listaNegociacoes.adiciona(negociacao));
-
+    
                 service.obeterNegociacoesDaSemanaRetrasada((erro, negociacoes) => {
                    
                     if (erro) {
                         this.#mensagem.texto = erro;
                         return
                     }
-
+    
                     negociacoes.forEach(negociacao => this.#listaNegociacoes.adiciona(negociacao));
                     this.#mensagem.texto = 'Negociações importadas com sucesso.'
                 });
@@ -176,15 +173,13 @@ class NegociacaoController {
 
     apaga() {
 
-        ConnectionFactory
-            .getConnection()
-            .then(connection => new NegociacaoDao(connection))
-            .then(dao => dao.apagaTodos())
-            .then(mensagem => {
+        this.#service
+            .apaga()
+            .then(mensagem =>{
                 this.#mensagem.texto = mensagem;
                 this.#listaNegociacoes.esvazia();
-            });
-
+            })
+            .catch(erro => this.#mensagem.texto = erro);
     }
 
     #criaNegociacao() {
