@@ -74,17 +74,7 @@ class NegociacaoController {
     importaNegociacoes() {
 
         this.#service
-            .obterNegociacoes()
-            .then(negociacoes =>
-                negociacoes.filter(negociacao =>
-                    /*
-                        O método .some() percorre uma lista e retorna true se encontrar um objeto
-                        corresponente ao objeto procurado
-                    */
-                    !this.#listaNegociacoes.negociacoes.some(negociacaoExistente =>
-                        JSON.stringify(negociacao) == JSON.stringify(negociacaoExistente))
-                )
-            )
+            .importa(this.#listaNegociacoes.negociacoes)
             .then(negociacoes => negociacoes.forEach(negociacao => {
                 this.#listaNegociacoes.adiciona(negociacao);
                 this.#mensagem.texto = 'Negociações do período importadas'
