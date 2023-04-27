@@ -50,4 +50,8 @@ class Negociacao {
         this.#valor = novoValor;
     }
 
+    isEquals(outraNegociacao) {        
+        return JSON.stringify(this) == JSON.stringify(outraNegociacao)
+    }
+
 }
