@@ -123,7 +123,7 @@ class NegociacaoService {
                         corresponente ao objeto procurado
                     */
                     !listaAtual.some(negociacaoExistente =>
-                        JSON.stringify(negociacao) == JSON.stringify(negociacaoExistente)))
+                        negociacao.isEquals(negociacaoExistente)))
             )
             .catch(erro => {
                 console.log(erro);
