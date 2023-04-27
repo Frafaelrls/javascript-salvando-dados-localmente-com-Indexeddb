@@ -113,4 +113,22 @@ class NegociacaoService {
             })
 
     }
+
+    importa(listaAtual) {
+        return this.obterNegociacoes()
+            .then(negociacoes =>
+                negociacoes.filter(negociacao =>
+                    /*
+                        O método .some() percorre uma lista e retorna true se encontrar um objeto
+                        corresponente ao objeto procurado
+                    */
+                    !listaAtual.some(negociacaoExistente =>
+                        JSON.stringify(negociacao) == JSON.stringify(negociacaoExistente)))
+            )
+            .catch(erro => {
+                console.log(erro);
+                throw new Error('Não foi possível buscar as negociações para importar');
+            })
+        
+    }
 }
