@@ -1,87 +1,79 @@
-/*    
-    A) O método getConnection() será um método estático, ou seja, invocado diretamente na classe.
+'use strict';
 
-    B) O retorno de getConnection será uma promise, pois a abertura de uma conexão é um processo assíncrono.
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-    C) Não importa quantas vezes seja chamado o método getConnection(), a conexão retornada deve ser a mesma.
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-    D) Toda conexão possui o método close(), mas o programador não pode chamá-lo, porque a conexão é a mesma para a aplicação inteira. Só o próprio ConnectionFactory pode fechar a conexão.
-*/
+var stores = ['negociacoes'];
+var version = 5;
+var dbName = 'aluraframe';
 
+var connection = null;
 
-var ConnectionFactory = (function () {
+var close = null;
 
-    const stores = ['negociacoes'];
-    const version = 5;
-    const dbName = 'aluraframe';
+var ConnectionFactory = function () {
+    function ConnectionFactory() {
+        _classCallCheck(this, ConnectionFactory);
 
-    var connection = null;
+        throw new Error('Não é possível criar instâncias de ConnectionFacroty');
+    }
 
-    var close = null;
+    _createClass(ConnectionFactory, null, [{
+        key: 'getConnection',
+        value: function getConnection() {
 
-    return class ConnectionFactory {
+            return new Promise(function (resolve, reject) {
 
-        constructor() {
+                var openRequest = window.indexedDB.open(dbName, version);
 
-            throw new Error('Não é possível criar instâncias de ConnectionFacroty');
+                openRequest.onupgradeneeded = function (e) {
 
-        }
-
-        static getConnection() {
-
-            return new Promise((resolve, reject) => {
-
-                let openRequest = window.indexedDB.open(dbName, version);
-
-                openRequest.onupgradeneeded = e => {
-
-                    ConnectionFactory.#createStore(e.target.result);
-
+                    ConnectionFactory._createStore(e.target.result);
                 };
 
-                openRequest.onsuccess = e => {
+                openRequest.onsuccess = function (e) {
 
-                    if(!connection) {
+                    if (!connection) {
                         connection = e.target.result;
                         close = connection.close.bind(connection);
-                        connection.close = function() {
+                        connection.close = function () {
                             throw new Error('Você não pode fechar diretamente a conexão');
-                        }
-                    } 
+                        };
+                    }
                     resolve(connection);
-
                 };
 
-                openRequest.onerror = e => {
+                openRequest.onerror = function (e) {
 
                     console.log(e.target.error);
 
                     reject(e.target.error.name);
-
                 };
             });
         }
+    }, {
+        key: '_createStore',
+        value: function _createStore(connection) {
 
-        static #createStore(connection) {
+            stores.forEach(function (store) {
 
-            stores.forEach(store => {
-
-                if (connection.objectStoreNames.contains(store))
-                    connection.deleteObjectStore(store);
+                if (connection.objectStoreNames.contains(store)) connection.deleteObjectStore(store);
 
                 connection.createObjectStore(store, { autoIncrement: true });
-
             });
         }
+    }, {
+        key: 'closeConnection',
+        value: function closeConnection() {
 
-        static closeConnection() {
-
-            if(connection) {
+            if (connection) {
                 close();
                 connection = null;
                 console.log('Conexão fechada!');
             }
         }
-     }
+    }]);
 
-})();
+    return ConnectionFactory;
+}();

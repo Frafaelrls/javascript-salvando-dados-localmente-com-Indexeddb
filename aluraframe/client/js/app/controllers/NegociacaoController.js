@@ -1,200 +1,187 @@
-class NegociacaoController {
+'use strict';
 
-    // Atributos privados
-    #inputData;
-    #inputQuantidade;
-    #inputValor;
-    #listaNegociacoes;
-    #mensagem;
-    #ordemAtual;
-    #service;
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-    constructor() {
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var NegociacaoController = function () {
+    function NegociacaoController() {
+        _classCallCheck(this, NegociacaoController);
 
         /* 
             O método .bind criar uma função que o seu this tem referência ao atributo fornecido
             Nes caso, a variável $ mantem a associação ao document
         */
-        let $ = document.querySelector.bind(document);
+        var $ = document.querySelector.bind(document);
 
-        this.#inputData = $('#data');
-        this.#inputQuantidade = $('#quantidade');
-        this.#inputValor = $('#valor');
-        this.#ordemAtual = '';
+        this._inputData = $('#data');
+        this._inputQuantidade = $('#quantidade');
+        this._inputValor = $('#valor');
+        this._ordemAtual = '';
 
+        this._listaNegociacoes = new Bind(new ListaNegociacoes(), new NegociacoesView($('#negociacoesView')), 'adiciona', 'esvazia', 'ordena', 'inverteOrdem');
 
-        this.#listaNegociacoes = new Bind(
-            new ListaNegociacoes(),
-            new NegociacoesView($('#negociacoesView')),
-            'adiciona', 'esvazia', 'ordena', 'inverteOrdem');
+        this._mensagem = new Bind(new Mensagem(), new MensagemView($('#mensagemView')), 'texto');
 
-        this.#mensagem = new Bind(
-            new Mensagem(),
-            new MensagemView($('#mensagemView')),
-            'texto');
-        
-        this.#service = new NegociacaoService()
+        this._service = new NegociacaoService();
 
-        this.#init();
+        this._init();
     }
 
-    #init() {
+    _createClass(NegociacaoController, [{
+        key: '_init',
+        value: function _init() {
+            var _this = this;
 
-        this.#service
-            .lista()
-            .then(negociacoes =>
-                negociacoes.forEach(negociacao =>
-                    this.#listaNegociacoes.adiciona(negociacao)))
-            .catch(erro => {
-                this.#mensagem.texto = erro;
+            this._service.lista().then(function (negociacoes) {
+                return negociacoes.forEach(function (negociacao) {
+                    return _this._listaNegociacoes.adiciona(negociacao);
+                });
+            }).catch(function (erro) {
+                _this._mensagem.texto = erro;
             });
 
-        setInterval(() => {
-            this.importaNegociacoes()
-        }, 3000);
+            setInterval(function () {
+                _this.importaNegociacoes();
+            }, 3000);
+        }
+    }, {
+        key: 'adiciona',
+        value: function adiciona(event) {
+            var _this2 = this;
 
-    }
+            event.preventDefault();
 
-    adiciona(event) {
-        event.preventDefault();
+            var negociacao = this._criaNegociacao();
 
-        let negociacao = this.#criaNegociacao();
+            this._service.cadastra(negociacao).then(function (mensagem) {
+                _this2._listaNegociacoes.adiciona(negociacao);
+                _this2._mensagem.texto = mensagem;
+                _this2._limpaFormulario();
+            }).catch(function (erro) {
+                return _this2._mensagem.texto = erro;
+            });
+        }
+    }, {
+        key: 'importaNegociacoes',
+        value: function importaNegociacoes() {
+            var _this3 = this;
 
-        this.#service
-            .cadastra(negociacao)
-            .then(mensagem => {
-                this.#listaNegociacoes.adiciona(negociacao);
-                this.#mensagem.texto = mensagem;
-                this.#limpaFormulario()
-            })
-            .catch(erro => this.#mensagem.texto = erro);
+            this._service.importa(this._listaNegociacoes.negociacoes).then(function (negociacoes) {
+                return negociacoes.forEach(function (negociacao) {
+                    _this3._listaNegociacoes.adiciona(negociacao);
+                    _this3._mensagem.texto = 'Negociações do período importadas';
+                });
+            }).catch(function (erro) {
+                return _this3._mensagem.texto = erro;
+            });
 
-    };
-
-    importaNegociacoes() {
-
-        this.#service
-            .importa(this.#listaNegociacoes.negociacoes)
-            .then(negociacoes => negociacoes.forEach(negociacao => {
-                this.#listaNegociacoes.adiciona(negociacao);
-                this.#mensagem.texto = 'Negociações do período importadas'
-            }))
-            .catch(erro => this.#mensagem.texto = erro);
-
-
-        /*
-            Abaixo temos a aplicação do padrão de projeto promise, mas, o código abaixo
-            é um "Pyramid of Doom". Este tipo de código pode apresentar retornos fora de
-            ordem devido a promise ser assíncrona, onde uma solicitação é executada independente
-            da solicitação anterior.
-    
-        let promise = service.obeterNegociacoesDaSemana();
-        promise
-            .then(negociacoes => {
-                negociacoes.forEach(negociacao => this.#listaNegociacoes.adiciona(negociacao))
-                this.#mensagem.texto = 'Negociações da semana obtida com sucesso!';
-            })
-            .catch(erro => this.#mensagem.texto = erro)
-    
-        service.obeterNegociacoesDaSemanaAnterior()
-            .then(negociacoes => {
-                negociacoes.forEach(negociacao => this.#listaNegociacoes.adiciona(negociacao))
-                this.#mensagem.texto = 'Negociações da semana anterior obtida com sucesso!';
-            })
-            .catch(erro => this.#mensagem.texto = erro)
-    
-        service.obeterNegociacoesDaSemanaRetrasada()
-            .then(negociacoes => {
-                negociacoes.forEach(negociacao => this.#listaNegociacoes.adiciona(negociacao))
-                this.#mensagem.texto = 'Negociações da semana retrasada obtida com sucesso!';
-            })
-            .catch(erro => this.#mensagem.texto = erro)
-    
-    
-        */
-        /* 
-        
-            Abaixo temos um exemplo de código chamado "Pyramid of Doom" ("Pirâmide do destino")
-            Isso ocorre quando temos um aninhamento de funções, ou seja, uma função dentro de outras
-            funções.
-    
-            A pirâmide é um forte indício de que temos problemas de legibilidade do código,
-            e é o sintoma de um problema maior, o "Callback Hell". 
-            Ocorre quando temos requisições assíncronas executadas em determinada ordem, 
-            que chama vários callbacks seguidos.
-        
-        
-    
-        service.obeterNegociacoesDaSemana((erro, negociacoes) => {
-    
-            // Pragamação chamada de Error-First-Callback
-            if (erro) {
-                this.#mensagem.texto = erro;
-                return
-            }
-    
-            negociacoes.forEach(negociacao => this.#listaNegociacoes.adiciona(negociacao));
-    
-            service.obeterNegociacoesDaSemanaAnterior((erro, negociacoes) => {
-    
+            /*
+                Abaixo temos a aplicação do padrão de projeto promise, mas, o código abaixo
+                é um "Pyramid of Doom". Este tipo de código pode apresentar retornos fora de
+                ordem devido a promise ser assíncrona, onde uma solicitação é executada independente
+                da solicitação anterior.
+                  let promise = service.obeterNegociacoesDaSemana();
+            promise
+                .then(negociacoes => {
+                    negociacoes.forEach(negociacao => this._listaNegociacoes.adiciona(negociacao))
+                    this._mensagem.texto = 'Negociações da semana obtida com sucesso!';
+                })
+                .catch(erro => this._mensagem.texto = erro)
+                  service.obeterNegociacoesDaSemanaAnterior()
+                .then(negociacoes => {
+                    negociacoes.forEach(negociacao => this._listaNegociacoes.adiciona(negociacao))
+                    this._mensagem.texto = 'Negociações da semana anterior obtida com sucesso!';
+                })
+                .catch(erro => this._mensagem.texto = erro)
+                  service.obeterNegociacoesDaSemanaRetrasada()
+                .then(negociacoes => {
+                    negociacoes.forEach(negociacao => this._listaNegociacoes.adiciona(negociacao))
+                    this._mensagem.texto = 'Negociações da semana retrasada obtida com sucesso!';
+                })
+                .catch(erro => this._mensagem.texto = erro)
+              
+            */
+            /* 
+            
+                Abaixo temos um exemplo de código chamado "Pyramid of Doom" ("Pirâmide do destino")
+                Isso ocorre quando temos um aninhamento de funções, ou seja, uma função dentro de outras
+                funções.
+                      A pirâmide é um forte indício de que temos problemas de legibilidade do código,
+                e é o sintoma de um problema maior, o "Callback Hell". 
+                Ocorre quando temos requisições assíncronas executadas em determinada ordem, 
+                que chama vários callbacks seguidos.
+            
+            
+                  service.obeterNegociacoesDaSemana((erro, negociacoes) => {
+                      // Pragamação chamada de Error-First-Callback
                 if (erro) {
-                    this.#mensagem.texto = erro;
+                    this._mensagem.texto = erro;
                     return
                 }
-    
-                negociacoes.forEach(negociacao => this.#listaNegociacoes.adiciona(negociacao));
-    
-                service.obeterNegociacoesDaSemanaRetrasada((erro, negociacoes) => {
-                   
-                    if (erro) {
-                        this.#mensagem.texto = erro;
+                      negociacoes.forEach(negociacao => this._listaNegociacoes.adiciona(negociacao));
+                      service.obeterNegociacoesDaSemanaAnterior((erro, negociacoes) => {
+                          if (erro) {
+                        this._mensagem.texto = erro;
                         return
                     }
-    
-                    negociacoes.forEach(negociacao => this.#listaNegociacoes.adiciona(negociacao));
-                    this.#mensagem.texto = 'Negociações importadas com sucesso.'
+                          negociacoes.forEach(negociacao => this._listaNegociacoes.adiciona(negociacao));
+                          service.obeterNegociacoesDaSemanaRetrasada((erro, negociacoes) => {
+                       
+                        if (erro) {
+                            this._mensagem.texto = erro;
+                            return
+                        }
+                              negociacoes.forEach(negociacao => this._listaNegociacoes.adiciona(negociacao));
+                        this._mensagem.texto = 'Negociações importadas com sucesso.'
+                    });
                 });
             });
-        });
-        
-        */
-
-    }
-
-    apaga() {
-
-        this.#service
-            .apaga()
-            .then(mensagem =>{
-                this.#mensagem.texto = mensagem;
-                this.#listaNegociacoes.esvazia();
-            })
-            .catch(erro => this.#mensagem.texto = erro);
-    }
-
-    #criaNegociacao() {
-
-        return new Negociacao(
-            DateHelper.textoParaData(this.#inputData.value),
-            parseInt(this.#inputQuantidade.value),
-            parseFloat(this.#inputValor.value)
-        );
-    }
-
-    ordena(coluna) {
-        if (this.#ordemAtual == coluna) {
-            this.#listaNegociacoes.inverteOrdem();
-        } else {
-            this.#listaNegociacoes.ordena((a, b) => a[coluna] - b[coluna]);
+            
+            */
         }
-        this.#ordemAtual = coluna;
-    }
+    }, {
+        key: 'apaga',
+        value: function apaga() {
+            var _this4 = this;
 
-    #limpaFormulario() {
-        this.#inputData.value = '';
-        this.#inputQuantidade.value = 1;
-        this.#inputValor.value = 0.0;
+            this._service.apaga().then(function (mensagem) {
+                _this4._mensagem.texto = mensagem;
+                _this4._listaNegociacoes.esvazia();
+            }).catch(function (erro) {
+                return _this4._mensagem.texto = erro;
+            });
+        }
+    }, {
+        key: '_criaNegociacao',
+        value: function _criaNegociacao() {
 
-        this.#inputData.focus();
-    }
-};
+            return new Negociacao(DateHelper.textoParaData(this._inputData.value), parseInt(this._inputQuantidade.value), parseFloat(this._inputValor.value));
+        }
+    }, {
+        key: 'ordena',
+        value: function ordena(coluna) {
+            if (this._ordemAtual == coluna) {
+                this._listaNegociacoes.inverteOrdem();
+            } else {
+                this._listaNegociacoes.ordena(function (a, b) {
+                    return a[coluna] - b[coluna];
+                });
+            }
+            this._ordemAtual = coluna;
+        }
+    }, {
+        key: '_limpaFormulario',
+        value: function _limpaFormulario() {
+            this._inputData.value = '';
+            this._inputQuantidade.value = 1;
+            this._inputValor.value = 0.0;
+
+            this._inputData.focus();
+        }
+    }]);
+
+    return NegociacaoController;
+}();
+
+;
