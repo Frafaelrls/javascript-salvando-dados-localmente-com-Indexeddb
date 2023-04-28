@@ -1,4 +1,6 @@
-class NegociacoesView extends View {
+import { View } from './View';
+// Herança de classe
+export class NegociacoesView extends View {
 
     constructor(elemento) {
         super(elemento);

@@ -1,4 +1,4 @@
-class ProxyFactory {
+export class ProxyFactory {
 
     /* 
         Recebe, o objeto que a proxy vai ser criada 

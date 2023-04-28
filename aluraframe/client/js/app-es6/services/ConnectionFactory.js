@@ -6,7 +6,7 @@ let connection = null;
 
 let close = null;
 
-class ConnectionFactory {
+export class ConnectionFactory {
 
     constructor() {
 
@@ -22,7 +22,7 @@ class ConnectionFactory {
 
             openRequest.onupgradeneeded = e => {
 
-                ConnectionFactory._createStore(e.target.result);
+                ConnectionFactory.#createStore(e.target.result);
 
             };
 
@@ -49,7 +49,7 @@ class ConnectionFactory {
         });
     }
 
-    static _createStore(connection) {
+    static #createStore(connection) {
 
         stores.forEach(store => {
 

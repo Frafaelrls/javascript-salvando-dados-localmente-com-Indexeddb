@@ -1,5 +1,6 @@
+import { View } from './View';// Herança de classe
 
-class MensagemView extends View {
+export class MensagemView extends View {
 
     constructor(elemento) {
         // Método super() será utilizado para passar o elemento para o construtor da classe mãe

@@ -1,6 +1,6 @@
+import { ProxyFactory } from '../services/ProxyFactory';
 
-
-class Bind {
+export class Bind {
 
     /*
         Utilizando três pontos afrente de um a parâmetro estamos 
