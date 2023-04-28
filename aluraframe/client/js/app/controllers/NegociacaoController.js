@@ -185,3 +185,4 @@ var NegociacaoController = function () {
 }();
 
 ;
+//# sourceMappingURL=NegociacaoController.js.map

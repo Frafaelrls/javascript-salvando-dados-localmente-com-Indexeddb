@@ -33,3 +33,4 @@ var MensagemView = function (_View) {
 
     return MensagemView;
 }(View);
+//# sourceMappingURL=MensagemView.js.map
