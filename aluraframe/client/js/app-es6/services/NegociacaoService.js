@@ -72,6 +72,7 @@ export class NegociacaoService {
 
             return negociacoes;
         }).catch(erro => {
+            console.log(erro);
             throw new Error(erro);
         });
     }

@@ -22,7 +22,7 @@ export class ConnectionFactory {
 
             openRequest.onupgradeneeded = e => {
 
-                ConnectionFactory.#createStore(e.target.result);
+                ConnectionFactory._createStore(e.target.result);
 
             };
 
@@ -49,7 +49,7 @@ export class ConnectionFactory {
         });
     }
 
-    static #createStore(connection) {
+    static _createStore(connection) {
 
         stores.forEach(store => {
 
