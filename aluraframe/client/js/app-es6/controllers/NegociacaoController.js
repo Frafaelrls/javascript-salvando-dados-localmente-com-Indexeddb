@@ -7,7 +7,7 @@ import { DateHelper } from '../helpers/DateHelper';
 import { Bind } from '../helpers/Bind';
 import { Negociacao } from '../models/Negociacao';
 
-export class NegociacaoController {
+class NegociacaoController {
 
     constructor() {
 
@@ -197,4 +197,10 @@ export class NegociacaoController {
 
         this._inputData.focus();
     }
-};
+}
+
+
+let negociacaoController = new NegociacaoController();
+export function currentInstance() {
+    return negociacaoController;
+}
